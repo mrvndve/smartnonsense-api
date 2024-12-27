@@ -27,7 +27,7 @@ const fetchQuestionsService = async (queryParams = {}) => {
           ...(isDeleted
             ? { isDeleted: isDeleted === "true" }
             : { isDeleted: false }),
-          ...(tags ? { tags: { $in: JSON.parse(tags) } } : {}),
+          ...(tags ? { tags: { $in: JSON.parse(tags) } } : []),
         },
       },
       {
