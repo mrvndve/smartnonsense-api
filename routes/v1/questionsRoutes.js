@@ -1,30 +1,74 @@
 const router = require("express").Router();
 const auth = require("../../middlewares/auth");
-const { createQuestionService } = require("../../services/questionsService");
-const HttpReponse = require("../../helpers/httpResponse");
+const {
+  fetchQuestionsService,
+  createQuestionService,
+  updateQuestionService,
+  singleDeleteService,
+  multipleDeleteService,
+} = require("../../services/questionsService");
+const errorHandler = require("../../middlewares/errorHandler");
 
-router.get("/", auth, async (req, res) => {
+router.get("/", auth, async (req, res, next) => {
   try {
-    res.status(200).json({ data: "test" });
+    const serviceRes = await fetchQuestionsService(req?.query);
+    res.status(serviceRes?.status).json(serviceRes);
   } catch (err) {
-    res.status(500).json({ message: "Error" });
+    next(err);
   }
 });
 
-router.post("/create", auth, async (req, res) => {
+router.post("/", auth, async (req, res, next) => {
   try {
-    const createQuestionServiceRes = await createQuestionService(req.body);
-
-    res.status(createQuestionServiceRes?.status).json(createQuestionServiceRes);
+    const serviceRes = await createQuestionService(req.body);
+    res.status(serviceRes?.status).json(serviceRes);
   } catch (err) {
-    res.status(HttpReponse.INTERNAL_SERVER_ERROR).json({
-      status: HttpReponse.INTERNAL_SERVER_ERROR,
-      message: "Internal Server Error",
-      errors: err.errors,
-    });
-
-    throw err;
+    next(err);
   }
 });
+
+router.put("/:id", auth, async (req, res, next) => {
+  try {
+    const id = req?.params?.id ?? null;
+    const serviceRes = await updateQuestionService(id, req.body);
+    res.status(serviceRes?.status).json(serviceRes);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.delete("/:id", auth, async (req, res, next) => {
+  try {
+    const id = req?.params?.id ?? null;
+
+    const isHardDelete = !req?.query?.isHardDelete
+      ? 0
+      : req?.query?.isHardDelete === "true"
+      ? 1
+      : 0;
+
+    const serviceRes = await singleDeleteService(id, isHardDelete);
+    res.status(serviceRes?.status).json(serviceRes);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.delete("/", auth, async (req, res, next) => {
+  try {
+    const isHardDelete = !req?.query?.isHardDelete
+      ? 0
+      : req?.query?.isHardDelete === "true"
+      ? 1
+      : 0;
+
+    const serviceRes = await multipleDeleteService(req.body, isHardDelete);
+    res.status(serviceRes?.status).json(serviceRes);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.use(errorHandler);
 
 module.exports = router;

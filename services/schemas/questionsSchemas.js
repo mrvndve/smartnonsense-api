@@ -1,6 +1,6 @@
 const Joi = require("joi");
 
-const createSchema = Joi.object({
+const createUpdateSchema = Joi.object({
   question: Joi.string().required().max(255).messages({
     "string.base": "{#label} must be a string",
     "string.empty": "{#label} cannot be empty",
@@ -83,8 +83,19 @@ const createSchema = Joi.object({
     "array.required": "{#label} is required",
     "any.required": "{#label} must be a string",
   }),
+}).unknown(false);
+
+const deleteMultipleSchema = Joi.object({
+  ids: Joi.array().items(Joi.string().required()).required().messages({
+    "array.base": "ids must be an array",
+    "array.empty": "ids cannot be empty",
+    "array.required": "ids are required",
+    "string.base": "Each id must be a string",
+    "string.empty": "id cannot be empty",
+  }),
 });
 
 module.exports = {
-  createSchema,
+  createUpdateSchema,
+  deleteMultipleSchema,
 };
